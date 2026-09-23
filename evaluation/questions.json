@@ -1,0 +1,97 @@
+[
+  {
+    "question": "Atlas 要求什么 Python 版本？",
+    "expected_sources": [
+      "01-installation.md"
+    ],
+    "reference_answer": "Python 3.11 或更高"
+  },
+  {
+    "question": "默认服务端口是多少？",
+    "expected_sources": [
+      "01-installation.md"
+    ],
+    "reference_answer": "8080"
+  },
+  {
+    "question": "健康检查路径是什么？",
+    "expected_sources": [
+      "01-installation.md"
+    ],
+    "reference_answer": "/health"
+  },
+  {
+    "question": "connect_timeout 默认值是多少？",
+    "expected_sources": [
+      "02-configuration.md"
+    ],
+    "reference_answer": "10 秒"
+  },
+  {
+    "question": "生产环境推荐的连接超时是多少？",
+    "expected_sources": [
+      "02-configuration.md"
+    ],
+    "reference_answer": "20 秒"
+  },
+  {
+    "question": "生产环境的缓存有效期是多少？",
+    "expected_sources": [
+      "02-configuration.md"
+    ],
+    "reference_answer": "300 秒"
+  },
+  {
+    "question": "开发环境和生产环境的数据库及日志级别有什么区别？",
+    "expected_sources": [
+      "01-installation.md",
+      "02-configuration.md"
+    ],
+    "reference_answer": "SQLite/DEBUG；PostgreSQL/INFO"
+  },
+  {
+    "question": "CONNECTION_TIMEOUT 应该如何排查？",
+    "expected_sources": [
+      "03-troubleshooting.md"
+    ],
+    "reference_answer": "数据库地址、网络、防火墙、超时参数"
+  },
+  {
+    "question": "OUT_OF_MEMORY 时 batch_size 应调整为什么？",
+    "expected_sources": [
+      "03-troubleshooting.md"
+    ],
+    "reference_answer": "20"
+  },
+  {
+    "question": "标准请求每 1000 次收费多少？",
+    "expected_sources": [
+      "04-pricing.md"
+    ],
+    "reference_answer": "2 元"
+  },
+  {
+    "question": "谁可以删除文档？",
+    "expected_sources": [
+      "05-security.md"
+    ],
+    "reference_answer": "admin"
+  },
+  {
+    "question": "审计日志保留多久？",
+    "expected_sources": [
+      "05-security.md"
+    ],
+    "reference_answer": "90 天"
+  },
+  {
+    "question": "Atlas 支持哪些 GPU 型号？",
+    "expected_sources": [],
+    "reference_answer": "文档没有说明"
+  },
+  {
+    "question": "Atlas 创始人是谁？",
+    "expected_sources": [],
+    "reference_answer": "文档没有说明"
+  }
+]
