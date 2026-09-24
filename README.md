@@ -24,14 +24,17 @@ uv run pytest -q
 
 ### Bash 启停脚本（Linux）
 
-先在另一个终端启动已安装的 Ollama；完成使用后在该终端按 `Ctrl+C` 停止服务：
+仓库提供独立的 Ollama 启停脚本，默认查找 `~/apps/ollama/bin/ollama`。
+其他安装路径可通过 `OLLAMA_BIN` 指定：
 
 ```bash
-ollama serve
+./scripts/ollama/start.sh
+./scripts/ollama/stop.sh
+# 例如：OLLAMA_BIN=/usr/local/bin/ollama ./scripts/ollama/start.sh
 ```
 
-如果 Ollama 未加入 `PATH`，可直接运行安装目录中的可执行文件，例如
-`~/apps/ollama/bin/ollama serve`。本仓库不再跟踪个人安装环境的 Ollama 启停脚本。
+脚本检测到已经运行的 Ollama 服务时不会接管该进程；停止脚本只停止由它启动并记录的进程。
+也可以在另一个终端直接运行 `ollama serve`，结束时按 `Ctrl+C`。
 
 项目根目录提供以下入口，脚本也支持从其他目录调用：
 
@@ -50,9 +53,10 @@ PORT=8010 ./start.sh frontend         # web 的别名，可指定端口
 http://127.0.0.1:8001/docs，可展开 `/query` 点击 Try it out 进行问答。
 脚本默认用 8001 端口，避免与其他 8000 服务冲突。
 依赖需先通过 `uv sync --extra dev` 安装；模型需要单独下载。
-脚本使用现有 `.env`，不自动构建索引或启动 Ollama。
+项目脚本使用现有 `.env`，不自动构建索引或启动 Ollama。
 Web 日志位于项目 `.run/web.log`。项目停止脚本只管理自身记录的命令行和 Web 进程，
-不会停止共享的 Ollama 服务。项目脚本依赖 Bash、curl 和 flock。
+不会停止共享的 Ollama 服务。Ollama 脚本的日志位于 `scripts/ollama/.run/ollama.log`。
+这些脚本依赖 Bash、curl 和 flock，并通过 Linux 的 `/proc` 跟踪进程。
 
 本项目不自动安装 Ollama 或下载大模型。已有 Ollama 服务时，可按机器内存选择模型；下面仅为示例：
 
