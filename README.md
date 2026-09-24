@@ -24,13 +24,14 @@ uv run pytest -q
 
 ### Bash 启停脚本（Linux）
 
-Ollama 脚本安装在 `~/apps/ollamma/`，默认使用已有的
-`~/apps/ollama/bin/ollama`，可通过 `OLLAMA_BIN` 覆盖：
+先在另一个终端启动已安装的 Ollama；完成使用后在该终端按 `Ctrl+C` 停止服务：
 
 ```bash
-~/apps/ollamma/start.sh
-~/apps/ollamma/stop.sh
+ollama serve
 ```
+
+如果 Ollama 未加入 `PATH`，可直接运行安装目录中的可执行文件，例如
+`~/apps/ollama/bin/ollama serve`。本仓库不再跟踪个人安装环境的 Ollama 启停脚本。
 
 项目根目录提供以下入口，脚本也支持从其他目录调用：
 
@@ -50,9 +51,8 @@ http://127.0.0.1:8001/docs，可展开 `/query` 点击 Try it out 进行问答�
 脚本默认用 8001 端口，避免与其他 8000 服务冲突。
 依赖需先通过 `uv sync --extra dev` 安装；模型需要单独下载。
 脚本使用现有 `.env`，不自动构建索引或启动 Ollama。
-Web 日志位于项目 `.run/web.log`，Ollama 日志位于
-`~/apps/ollamma/.run/ollama.log`。停止脚本仅管理自身记录的进程；
-项目停止不会停止共享的 Ollama 服务。脚本依赖 Bash、curl 和 flock。
+Web 日志位于项目 `.run/web.log`。项目停止脚本只管理自身记录的命令行和 Web 进程，
+不会停止共享的 Ollama 服务。项目脚本依赖 Bash、curl 和 flock。
 
 本项目不自动安装 Ollama 或下载大模型。已有 Ollama 服务时，可按机器内存选择模型；下面仅为示例：
 
@@ -157,6 +157,8 @@ uv sync --extra dev --extra rerank
 本项目故意显式构建带编号的上下文并调用 LLM，便于观察数据流；它没有把所有逻辑藏在 QueryEngine 中。将其替换为 ResponseSynthesizer 是学习练习。
 
 详细安排见 [8 周项目学习手册](docs/LEARNING.md)，架构与限制见 [设计说明](docs/ARCHITECTURE.md)。
+
+代码中的中文注释解释关键算法与设计原因；配套 [知识点讲解](docs/CONCEPTS.md) 结合学习文档链接，介绍 RAG、分块、索引更新、检索公式、评估、引用、Agent 与 API。
 # technical-docs-assistant
 # technical-docs-assistant
 # technical-docs-assistant

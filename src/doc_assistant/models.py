@@ -32,10 +32,13 @@ class DemoEmbedding(BaseEmbedding):
         vector = [0.0] * self.dimensions
         for token in tokens(text):
             digest = hashlib.sha256(token.encode()).digest()
+            # 固定 SHA-256 保证跨进程可复现；不同词可能落在同一维，碰撞不代表语义相近。
             vector[int.from_bytes(digest[:4], "big") % self.dimensions] += 1
+        # L2 归一化使非零向量长度为 1；此时点积等于余弦相似度。空文本保留零向量。
         norm = math.sqrt(sum(x*x for x in vector)) or 1
         return [x/norm for x in vector]
 
+    # 问题和文档必须进入可比较的向量空间，不能只保证它们的向量维数相同。
     def _get_query_embedding(self, query):
         return self._get_text_embedding(query)
 

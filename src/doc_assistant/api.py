@@ -16,6 +16,7 @@ class Message(BaseModel):
 # 文档来源：https://fastapi.tiangolo.com/tutorial/body/
 class Query(BaseModel):
     question: str = Field(min_length=1, max_length=4000)
+    # 每个请求独立创建列表；会话由调用方传入，服务端不保存聊天历史。
     history: list[Message] = Field(default_factory=list, max_length=6)
     source: str | None = Field(default=None, max_length=500)
 
@@ -32,6 +33,7 @@ def create_app(config=None):
     def query(body: Query):
         try:
             return assistant.query(body.question, [m.model_dump() for m in body.history], body.source).to_dict()
+        # 子类异常须先捕获：IndexNotReady 继承 ValueError，索引状态冲突对应 409。
         except IndexNotReady as error:
             raise HTTPException(409, str(error)) from error
         except ValueError as error:
@@ -50,6 +52,7 @@ def create_app(config=None):
         from fastapi.responses import StreamingResponse
         try:
             events = assistant.stream(body.question, [m.model_dump() for m in body.history], body.source)
+        # 子类异常须先捕获：IndexNotReady 继承 ValueError，索引状态冲突对应 409。
         except IndexNotReady as error:
             raise HTTPException(409, str(error)) from error
         except ValueError as error:
@@ -58,6 +61,7 @@ def create_app(config=None):
             import logging
             logging.getLogger(__name__).exception("流式检索失败")
             raise HTTPException(503, "检索失败，请检查服务端日志") from error
+        # NDJSON 用换行划分事件；网络分片不保证一片一行，客户端须缓冲后按行解析。
         return StreamingResponse((json.dumps(event, ensure_ascii=False) + "\n" for event in events),
                                  media_type="application/x-ndjson")
 

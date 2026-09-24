@@ -21,6 +21,7 @@ def calculate(expression: str) -> float:
                   ast.Mult: operator.mul, ast.Div: operator.truediv}
 
     def visit(node):
+        # bool 是 int 的子类，精确比较 type 才能排除 True/False；调用、属性访问等节点也不在白名单。
         if isinstance(node, ast.Constant) and type(node.value) in (int, float):
             result = float(node.value)
         elif isinstance(node, ast.BinOp) and type(node.op) in operations:
@@ -50,6 +51,7 @@ async def run_agent(config, question):
     async def search_documents(query: str) -> str:
         """检索 Atlas 文档并返回有来源的回答。计费等事实必须先检索。"""
         try:
+            # 同步检索/生成放入线程，避免阻塞事件循环；这不会让模型计算本身变快。
             answer = await asyncio.to_thread(Assistant(config).query, query)
             result = answer.to_dict()
             trace.append({"tool": "search_documents", "input": query, "output": result})
@@ -101,6 +103,7 @@ class RagWorkflow(Workflow):
 
     @step
     async def search(self, ev: StartEvent | RetryEvent) -> EvidenceEvent:
+        # 事件类型决定下一步：StartEvent/RetryEvent → search → EvidenceEvent → assess。
         retry = isinstance(ev, RetryEvent)
         query = ev.query if retry else ev.question
         result = await asyncio.to_thread(Assistant(self.config).query, query)
@@ -113,6 +116,7 @@ class RagWorkflow(Workflow):
     # 文档来源：https://docs.llamaindex.org.cn/en/stable/understanding/workflows/branches_and_loops/
     @step
     async def assess(self, ev: EvidenceEvent) -> RetryEvent | StopEvent:
+        # demo 仅检查非空；真实模式再用模型判断“证据能否回答”，也不等于核验候选回答每句话。
         enough = bool(ev.result["sources"])
         if self.config.mode == "ollama" and enough:
             context = "\n".join(item["text"] for item in ev.result["sources"])

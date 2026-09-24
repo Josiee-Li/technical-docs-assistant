@@ -9,6 +9,7 @@ from .models import tokens
 # 学习内容：根据词频、逆文档频率和长度归一化打分；这里是教学公式实现，没有调用官方 BM25Retriever。
 # 文档来源：https://docs.llamaindex.org.cn/en/stable/examples/retrievers/bm25_retriever/
 def bm25(nodes, query):
+    # 查询词去重：重复提问同一词不会额外加权；统计单位是 Node 片段，不是源文件。
     query_tokens = set(tokens(query))
     counts = [Counter(tokens(n.text)) for n in nodes]
     lengths = [sum(c.values()) for c in counts]
@@ -20,8 +21,10 @@ def bm25(nodes, query):
             frequency = count[term]
             if not frequency:
                 continue
+            # df 是包含该词的片段数；越罕见的词 IDF 越高，常见词的区分能力较弱。
             df = sum(term in c for c in counts)
             idf = math.log(1 + (len(nodes)-df+0.5)/(df+0.5))
+            # BM25 参数 k1=1.5、b=0.75：词频收益逐渐饱和，并修正长片段天然出现更多词的偏差。
             score += idf * frequency * 2.5 / (frequency + 1.5*(0.25+0.75*length/(avg or 1)))
         if score > 0:
             result.append(NodeWithScore(node=node, score=score))
@@ -33,6 +36,7 @@ def retrieve(index, question, config, source=None):
              and (source is None or n.metadata.get("source") == source)]
     if not nodes:
         return []
+    # 先扩大候选池再融合/重排，最后截取 top_k；重排无法找回未进入候选池的片段。
     candidate_k = min(len(nodes), max(config.top_k*3, 10))
     lexical = bm25(nodes, question)[:candidate_k] if config.retrieval != "dense" else []
     dense = []
@@ -51,6 +55,7 @@ def retrieve(index, question, config, source=None):
             for rank, item in enumerate(ranking, 1):
                 key = item.node.node_id
                 lookup[key] = item.node
+                # 两路量纲不同，故只融合排名；常数 60 平滑头部优势，同一节点多路出现会累加。
                 scores[key] = scores.get(key, 0) + 1/(60+rank)
         results = [NodeWithScore(node=lookup[k], score=v) for k,v in sorted(scores.items(), key=lambda p:p[1], reverse=True)]
     else:
@@ -62,6 +67,7 @@ def retrieve(index, question, config, source=None):
         from sentence_transformers import CrossEncoder
         # 教学实现，生产环境应复用加载后的模型。
         model = CrossEncoder(config.rerank_model)
+        # CrossEncoder 同时读取问题与片段，比独立编码更昂贵；输出分数不是统一校准的概率。
         values = model.predict([(question, item.node.text) for item in results])
         results = [NodeWithScore(node=item.node, score=float(score)) for item, score in zip(results, values)]
         results.sort(key=lambda item: item.score, reverse=True)

@@ -32,6 +32,7 @@ def main():
     config = Config.from_env()
     if args.mode:
         from dataclasses import replace
+        # Config 不可变，replace 创建副本并重新校验；显式 --mode 优先于环境配置。
         config = replace(config, mode=args.mode)
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s %(message)s")
     try:
@@ -64,6 +65,7 @@ def main():
         elif args.command in {"agent", "workflow"}:
             import asyncio
             from .advanced import run_agent, run_workflow
+            # 同步 CLI 在最外层启动事件循环；已有事件循环的异步应用应直接 await。
             result = asyncio.run((run_agent if args.command == "agent" else run_workflow)(config, args.question))
         else:
             import uvicorn

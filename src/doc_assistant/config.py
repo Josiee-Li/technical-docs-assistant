@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 # 文档来源：https://docs.llamaindex.org.cn/en/stable/understanding/rag/
 @dataclass(frozen=True)
 class Config:
+    # frozen 防止请求处理中意外改写共享配置；需要覆盖时用 dataclasses.replace 创建新实例。
     mode: str = "demo"
     data_dir: Path = Path("data")
     storage_dir: Path = Path(".storage")
@@ -33,6 +34,7 @@ class Config:
 
     @classmethod
     def from_env(cls):
+        # 默认不覆盖进程已有环境变量：命令行环境优先于 .env，缺失项才使用下面的默认值。
         load_dotenv()
         return cls(
             mode=os.getenv("APP_MODE", "demo"),
